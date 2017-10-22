@@ -29,7 +29,7 @@ Used third party tools:
  6. Inform with user actions (Join & Left)
 
 ## Screens
-![react-redux-chat-screens](https://github.com/anumang/react-chat-app/blob/master/screenshots/screens.gif)
+![react-redux-chat-screens](https://github.com/anumang/react-redux-socket-io-chat/blob/c8c9fa16d8f1bf83640e42e44a0eaf7ba7ac3a46/screenshots/screens.gif)
 
 ## Install
 #### Requirements
