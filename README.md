@@ -44,7 +44,7 @@ cd react-chat-app
 npm install
 ```
 #### Start Server
-Run the following command to start backend server:
+Run the following command to start API server:
 ```
 npm run start-server
 ```
