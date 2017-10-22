@@ -1,0 +1,177 @@
+.room
+    width: 100vw
+    height: 100vh
+    align-items: center
+    display: flex
+    justify-content: center
+
+    .user-container
+        align-items: center
+        display: flex
+        justify-content: center   
+        .inputElement
+            flex-direction: column
+            width: 300px
+            height: 50px
+            margin: 10px
+            font-size: 16px
+
+        .buttonElement
+            flex-direction: column
+            width: 150px
+            height: 50px
+            margin: 10px
+
+    .watch-container
+        align-items: center
+        display: flex
+        width: 100%
+        height: 100%
+        justify-content: center
+        overflow: hidden
+
+        .player-container
+            display: flex
+            width: 100%
+            height: 100%
+            align-items: center
+            justify-content: center
+            transition: margin-left .5s
+            padding: 16px
+
+        .message-container
+            position: absolute
+            top: 0
+            left: 0
+            bottom: 0
+            .openbtn
+                position: absolute
+                top: 20px
+                left: 20px
+                width: 50px
+                height: 50px
+                text-align: center
+                cursor: pointer
+                a
+                    width: 100%
+                    height: 100%
+                    font-size: 25px
+                    line-height: 2em
+                    border-radius: 100px
+                    border: 1px solid rgba(0,0,0,0.5)
+                a:hover
+                    color: #07c
+
+            .slider
+                height: 100%
+                width: 0
+                position: fixed
+                z-index: 1
+                top: 0
+                left: 0
+                bottom: 0
+                background-color: #F3F7F5
+                border: 1px solid rgba(0,0,0,0.3)
+                overflow-x: hidden
+                transition: 0.5s
+                overflow: hidden
+                .closebtn
+                    height: auto
+                    margin: auto
+                    padding-right: 15px
+                    cursor: pointer
+                    color: black
+                    font-size: 40px
+                    font-weight: bold
+                .closebtn:hover
+                    color: #07c
+                .usersHeader
+                  display: inline-flex
+                  flex: 1
+                  width: 100%
+                  div
+                    flex: 1
+                    font-size: 20px
+                    font-weight: 500
+                    margin: auto
+                    padding-left: 20px
+                    color: black      
+                .users
+                    margin: 0px 15px 0px 15px
+                    padding: 24px
+                    background-color: white
+                    height: calc(20% - 50px)
+                    overflow-x: hidden
+                    overflow-y: auto
+                    border-radius: 10px
+                    .user
+                        text-decoration: none
+                        font-weight: 500
+                        font-size: 16px
+                        display: block
+                        transition: 0.3s
+                        word-break: break-all
+                .chat-container
+                    margin-bottom: 40px
+                    height: calc(80% - 40px)
+                    padding: 15px
+                    .chat-view
+                        height: calc(90% - 80px)
+                        background-color: white
+                        overflow-x: hidden
+                        overflow-y: auto
+                        border-radius: 10px
+                        .chat-message-container-self
+                          word-break: break-all
+                          border-radius: 10px
+                          padding: 10px
+                          margin: 10px
+                          margin-right: 5px
+                          margin-left: 30px
+                          background-color: #def3e6
+                        .chat-message-container-server
+                          background-color: white
+                          word-break: break-all
+                          border-radius: 10px
+                          padding: 10px
+                          margin: 10px 5px 5px 10px
+                          background-color: white
+                          .chat-message
+                            font-style: italic
+                        .chat-message-container
+                          word-break: break-all
+                          border-radius: 10px
+                          padding: 10px
+                          margin: 10px
+                          margin-right: 30px
+                          margin-left: 5px
+                          background-color: #D6E7DD
+                          .chat-message-user
+                            font-weight: 600
+                            text-decoration: underline
+                          .hidden
+                            display: none
+                    .chat-box
+                        height: 80px
+                        padding: 8px 0px 8px 0px
+                        display: flex
+                        .chat-input
+                            flex-direction: column
+                            width: calc(100% - 40px)
+                            textarea
+                              font-size: 14px
+                              font-weight: 500
+                        .chat-button
+                            flex-direction: column
+                            width: 40px
+                            display: flex
+                            text-align: center
+                            font-size: 30px
+                            background-color: white
+                            color: black
+                            a
+                                cursor: pointer
+                                display: flex
+                                margin-top: 40px
+                        .chat-button:hover
+                            color: #07c
