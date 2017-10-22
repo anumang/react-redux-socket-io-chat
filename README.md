@@ -50,7 +50,8 @@ npm run start-server
 ```
 #### Check Redis Creds
 You can customise redis creds. If you are using local redis server no need to modify.
-  If requires, make alterations on:
+
+If requires, make alterations on:
 
 * `backend/creds.json`
 
@@ -62,14 +63,14 @@ You can customise redis creds. If you are using local redis server no need to mo
 }
 ```
 #### Serve app in production
-After server is up. Run the following command to build bundle in production.
+After server is up. Run the following command to build bundle in production:
 ```
 npm run build
 ```
 App is running in production at [http://localhost:5000](http://localhost:5000)
 
 #### Serve app in development
-After server is up. Run the following commands to start webpack development server.
+After server is up. Run the following commands to start webpack development server:
 ```
 npm start
 ```
