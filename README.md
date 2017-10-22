@@ -4,8 +4,8 @@ Sample Full Stack Chat Room App with
 
  * [React] (https://facebook.github.io/react/) Client
  * [React-Redux] (https://github.com/reactjs/react-redux/) Client
- * [Redux-Socket-io] (https://github.com/itaylor/redux-socket.io/)  Client Socket
- * [Babel] (https://babeljs.io/) --> ES6 Standards
+ * [Redux-Socket-io] (https://github.com/itaylor/redux-socket.io/) Client Socket
+ * [Babel] (https://babeljs.io/) ES6 Standards
  * [Eslint] (https://github.com/eslint/eslint/) ES6 & React Linter
  * [Webpack] (https://webpack.github.io/) Bundler
  * [Express] (https://github.com/expressjs/express/) Server
