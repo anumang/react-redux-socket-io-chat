@@ -50,12 +50,11 @@ npm run start-server
 ```
 #### Check Redis Creds
 You can customise redis creds. If you are using local redis server no need to modify.
-Make alterations on:
+  If requires, make alterations on:
 
 * `backend/creds.json`
 
 ```
-...
 {
  "host": "localhost",
  "port": 6379,
