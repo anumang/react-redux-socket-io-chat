@@ -39,7 +39,7 @@ Used third party tools:
 #### Clone & Install Node Modules
 Run the following commands to install the app:
 ```
-git clone https://github.com/tonyspiro/react-chat-app
+git clone https://github.com/anumang/react-redux-socket-io-chat.git
 cd react-chat-app
 npm install
 ```
