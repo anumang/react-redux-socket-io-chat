@@ -1,4 +1,4 @@
-# React-Redux Client Express-Soket-Redis Server Full Stack Chat Room App
+# React-Redux Client Express-Socket.io-Redis Server Full Stack Chat Room App
 
 Sample Full Stack Chat Room App with
 
