@@ -1,6 +1,6 @@
 {
   "name": "react-redux-chat-room",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "homepage": "https://github.com/anumang/react-redux-socket-io-chat#readme",
   "license": "MIT",
   "description": "Full stack react redux socket.IO chat app.",
