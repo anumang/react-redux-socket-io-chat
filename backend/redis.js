@@ -1,4 +1,5 @@
 "use strict";
+const chalk = require('chalk');
 const redis = require('redis');
 const creds = require('./creds.json');
 
@@ -6,7 +7,7 @@ const init = () => new Promise((resolve, reject) => {
  try {
   // Read credentials from JSON
   // For external redis setups set connection url from creds.url as
-  //[redis:]//[[user][:password@]][host][:port][/db-number][?db=db-number[&password=bar[&option=value]]]
+  // [redis:]//[[user][:password@]][host][:port][/db-number][?db=db-number[&password=bar[&option=value]]]
   const redisOptions = {
    url: creds.url,
    host: creds.host || '127.0.0.1',
@@ -27,38 +28,40 @@ const init = () => new Promise((resolve, reject) => {
      // End reconnecting with built in error
      return undefined;
     }
-    // reconnect after
+    // Reconnect after
     return Math.min(options.attempt * 100, 3000);
    }
   }
 
-  // Crete redi clients: store , pub, sub
+  // Crete redis clients for store with pub and sub
   const store = redis.createClient(redisOptions);
   const pub = redis.createClient(redisOptions);
   const sub = redis.createClient(redisOptions);
 
   // Once ready
   store.once('ready', () => {
-   // Desired option to flush on start
-   store.flushdb();
+   // desired option to flush rooms on start
+   // store.flushdb();
 
-   console.log('Redis: Server is ready on :', redisOptions.host, ':', redisOptions.port);
+   console.log(chalk.green('Redis: Server is ready on :', redisOptions.host, ':', redisOptions.port));
 
    resolve({ store, pub, sub });
   });
  }
  catch (e) {
-  console.error('Redis: While starting clients an error occured:', e);
+  console.error(chalk.red('Redis: While starting clients an error occurred:', e.message));
   reject(e);
  };
 });
 
 
 // Close clients
-const quit = (clients) => {
- clients.store.quit();
- clients.pub.quit();
- clients.sub.quit();
+const quit = (clients, callback) => {
+ clients.store.quit(() =>
+  clients.pub.quit(() =>
+    clients.sub.quit(callback)
+  )
+ );
 }
 
 module.exports = { init, quit }

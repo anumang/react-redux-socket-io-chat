@@ -1,33 +1,44 @@
 'use strict';
 const express = require('express');
+const chalk = require('chalk');
+const cors = require('cors');
 const http = require('http');
-const bodyParser = require('body-parser')
 const path = require('path');
 const uid = require('uid');
 const env = require('../env');
 const app = express();
 
+function enableDestroy(server) {
+  const connections = {}
+
+  server.on('connection', (conn) => {
+    const key = conn.remoteAddress + ':' + conn.remotePort;
+    connections[key] = conn;
+    conn.on('close', function() {
+      delete connections[key];
+    });
+  });
+
+  server.destroy = (cb) => {
+    server.close(cb);
+    for (let key in connections)
+      connections[key].destroy();
+  };
+}
+
 const init = (store) => new Promise((resolve, reject) => {
   try {
-    //CORS middleware
-    const allowCrossDomain = (req, res, next) => {
-      res.header('Access-Control-Allow-Origin', env.HOST_URL + ':' + env.HOST_PORT);
-      res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-      res.header('Access-Control-Allow-Headers', 'Content-Type');
-      res.header('Access-Control-Allow-Credentials', 'true');
-      next();
-    }
-
-    app.use(allowCrossDomain);
-    app.use(bodyParser.json());
-    app.use(bodyParser.urlencoded({ extended: true }));
+    app.use(cors());
+    app.use(express.json({ limit: '100mb' }));
+    app.use(express.urlencoded({ extended: true }));
     app.use(express.static(path.join(__dirname, '/../public')));
+
     // Put all API endpoints under '/api'
     app.post('/api/createRoom', (req, res) => {
       try {
-        console.log(`Server: createRoom:  Room create requested with roomName:`, req.body.roomName);
+        console.log(chalk.green(`Server: createRoom:  Room create requested with roomName:`, req.body.roomName));
         const roomName = req.body.roomName;
-        const newRoomId = uid(10);
+        const newRoomId = uid.uid(10);
         if (roomName && roomName.replace(/ /g, '').length > 0) {
           store.get('chat_rooms', (err, reply) => {
             let rooms = [];
@@ -36,26 +47,26 @@ const init = (store) => new Promise((resolve, reject) => {
             }
             rooms.push({ roomId: newRoomId, roomName });
             store.set(`chat_room_${newRoomId}_users`, JSON.stringify([]))
-            const messageId = uid(5);
+            const messageId = uid.uid(5);
             store.set(`chat_room_${newRoomId}_messages`, JSON.stringify([{ messageId, message: `Welcome to our party. To invite others ${env.HOST_URL}/room/${newRoomId} .` }]));
             store.set('chat_rooms', JSON.stringify(rooms));
+            console.log(chalk.green(`Server: createRoom:  Room created with:`, newRoomId, ' / ', req.body.roomName));
+            res.send(JSON.stringify({ success: true, newRoomId, roomName }));
           });
-          console.log(`Server: createRoom:  Room created with:`, newRoomId, ' / ', req.body.roomName);
-          res.send(JSON.stringify({ success: true, newRoomId, roomName }));
         } else {
-          console.error('Server: createRoom: Empty roomName!');
+          console.error(chalk.red('Server: createRoom: Empty roomName!'));
           res.status(400).send('createRoom: Empty roomName!');
         }
       }
       catch (e) {
-        console.error('Server: createRoom: Unexpected error:', JSON.stringify(e));
+        console.error(chalk.red('Server: createRoom: Unexpected error:', e.message));
         res.status(500).send('createRoom: Unexpected error!');
       }
     });
 
     app.post('/api/connectRoom', (req, res) => {
       try {
-        console.log(`Server: connectRoom: Connect requested with params:`, JSON.stringify(req.query));
+        console.log(chalk.green(`Server: connectRoom: Connect requested with params:`, JSON.stringify(req.query)));
         if (req.body.username && req.body.roomId) {
           const roomId = req.body.roomId;
           const username = req.body.username;
@@ -71,34 +82,34 @@ const init = (store) => new Promise((resolve, reject) => {
                   users = JSON.parse(reply);
                 }
                 const roomName = rooms.filter(x => x.roomId === roomId)[0].roomName;
-                const userId = uid(5);
+                const userId = uid.uid(5);
                 users.push({ username, userId });
                 store.set(`chat_room_${roomId}_users`, JSON.stringify(users));
-                console.log(`Server: connectRoom: Connected room ID / user ID :`, userId, ' / ', roomId);
+                console.log(chalk.green(`Server: connectRoom: Connected room ID / user ID :`, userId, ' / ', roomId));
                 res.send(JSON.stringify({ success: true, username, userId, roomId, roomName }))
               })
             } else {
-              console.error('Server: connectRoom: Room not exist! RoomId:', roomId);
+              console.error(chalk.red('Server: connectRoom: Room not exist! RoomId:', roomId));
               res.status(400).send('connectRoom: Room not exist!');
             }
           });
         } else {
-          console.error('Server: connectRoom: Invalid Params!', JSON.stringify(req.body));
+          console.error(chalk.red('Server: connectRoom: Invalid Params!', JSON.stringify(req.body)));
           res.status(400).send('connectRoom: Invalid Params!');
         }
       }
       catch (e) {
-        console.error('connectRoom: Unexpected error:', JSON.stringify(e));
+        console.error(chalk.red('connectRoom: Unexpected error:', e.message));
         res.status(500).send('connectRoom: Unexpected error!');
       }
     });
 
     app.post('/api/reConnectRoom', (req, res) => {
       try {
-        console.log(`Server: reConnectRoom: Re-Connect requested with params:`, JSON.stringify(req.query));
+        console.log(chalk.green(`Server: reConnectRoom: Re-Connect requested with params:`, JSON.stringify(req.query)));
         if (req.body.username && req.body.roomId) {
           const roomId = req.body.roomId;
-          const userId = req.body.userId || uid(5);
+          const userId = req.body.userId || uid.uid(5);
           const username = req.body.username;
           store.get('chat_rooms', (err, reply) => {
             let rooms = [];
@@ -113,7 +124,7 @@ const init = (store) => new Promise((resolve, reject) => {
                   users = JSON.parse(reply);
                 }
                 if (users.map(x => x.userId).indexOf(userId) === -1) {
-                  console.log('Server: reConnectRoom: User not exist, creating new user with username / user ID:', username, ' / ', userId);
+                  console.log(chalk.green('Server: reConnectRoom: User not exist, creating new user with username / user ID:', username, ' / ', userId));
                   users.push({ username, userId });
                   store.set(`chat_room_${roomId}_users`, JSON.stringify(users));
                 }
@@ -121,34 +132,34 @@ const init = (store) => new Promise((resolve, reject) => {
               })
             } else if (req.body.roomName) {
               const roomName = req.body.roomName;
-              console.log('Server: reConnectRoom: room not exist, creating with params:', roomId, ' / ', roomName);
-              console.log('Server: reConnectRoom: user not exist, creating with params:', username, ' / ', userId);
+              console.log(chalk.green('Server: reConnectRoom: room not exist, creating with params:', roomId, ' / ', roomName));
+              console.log(chalk.green('Server: reConnectRoom: user not exist, creating with params:', username, ' / ', userId));
               rooms.push({ roomId, roomName });
               store.set(`chat_room_${roomId}_users`, JSON.stringify([{ username, userId }]));
-              const messageId = uid(5);
+              const messageId = uid.uid(5);
               store.set(`chat_room_${roomId}_messages`, JSON.stringify([{ messageId, message: `Welcome to our party. To invite others ${env.HOST_URL}/room/${roomId} .` }]));
               store.set('chat_rooms', JSON.stringify(rooms));
-              console.log('Server: reConnectRoom: Successfully re-connected with user ID / room ID / roomName:', userId, ' / ', roomId, ' / ', roomName);
+              console.log(chalk.green('Server: reConnectRoom: Successfully re-connected with user ID / room ID / roomName:', userId, ' / ', roomId, ' / ', roomName));
               res.send(JSON.stringify({ success: true, username, userId, roomId, roomName }))
             } else {
-              console.error('Server: reConnectRoom: Invalid Params!', JSON.stringify(req.body));
+              console.error(chalk.red('Server: reConnectRoom: Invalid Params!', JSON.stringify(req.body)));
               res.status(400).send('reConnectRoom: Invalid Params!');
             }
           });
         } else {
-          console.error('Server: reConnectRoom: Invalid Params!', JSON.stringify(req.body));
+          console.error(chalk.red('Server: reConnectRoom: Invalid Params!', JSON.stringify(req.body)));
           res.status(400).send('reConnectRoom: Invalid Params!');
         }
       }
       catch (e) {
-        console.error('Server: reConnectRoom: Unexpected error:', JSON.stringify(e));
+        console.error(chalk.red('Server: reConnectRoom: Unexpected error:', e.message));
         res.status(500).send('reConnectRoom: Unexpected error!');
       }
     });
 
     app.post('/api/sendMessage', (req, res) => {
       try {
-        console.log(`Server: sendMessage: Send message requested with params: `, JSON.stringify(req.body));
+        console.log(chalk.green(`Server: sendMessage: Send message requested with params: `, JSON.stringify(req.body)));
         const username = req.body.username;
         const userId = req.body.userId;
         const roomId = req.body.roomId;
@@ -170,32 +181,32 @@ const init = (store) => new Promise((resolve, reject) => {
                   if (reply) {
                     messages = JSON.parse(reply);
                   }
-                  const messageId = uid(5);
+                  const messageId = uid.uid(5);
                   messages.push({ userId, username, message, messageId });
                   store.set(`chat_room_${roomId}_messages`, JSON.stringify(messages));
-                  console.log('Server: sendMessage: Successfully sent message for room ID :', roomId);
+                  console.log(chalk.green('Server: sendMessage: Successfully sent message for room ID :', roomId));
                   res.send(JSON.stringify({ success: true, username, userId, roomId, message, messageId }))
                 });
               } else {
-                console.error('Server: sendMessage: User not exist! Username:', username);
+                console.error(chalk.red('Server: sendMessage: User not exist! Username:', username));
                 res.status(400).send('sendMessage: User not exist!');
               }
             });
           } else {
-            console.error('Server: sendMessage: Room not exist! Room ID:', roomId);
+            console.error(chalk.red('Server: sendMessage: Room not exist! Room ID:', roomId));
             res.status(400).send('sendMessage: Room not exist!');
           }
         });
       }
       catch (e) {
-        console.error('Server: sendMessage: Unexpected error:', JSON.stringify(e));
+        console.error(chalk.red('Server: sendMessage: Unexpected error:', e.message));
         res.status(500).send('sendMessage: Unexpected error!');
       }
     });
 
     app.post('/api/getMessages', (req, res) => {
       try {
-        console.log(`Server: getMessages: Get messages requested with params:`, JSON.stringify(req.body));
+        console.log(chalk.green(`Server: getMessages: Get messages requested with params:`, JSON.stringify(req.body)));
         if (req.body.userId && req.body.roomId) {
           const roomId = req.body.roomId;
           const userId = req.body.userId;
@@ -216,33 +227,33 @@ const init = (store) => new Promise((resolve, reject) => {
                     if (reply) {
                       messages = JSON.parse(reply);
                     }
-                    console.log(`Server: getMessages: Successfully get all messages for Room ID:`, roomId);
+                    console.log(chalk.green(`Server: getMessages: Successfully get all messages for Room ID:`, roomId));
                     res.send(JSON.stringify({ success: true, messages }))
                   });
                 } else {
-                  console.error('Server: getMessages: User not exist! user ID :', userId);
+                  console.error(chalk.red('Server: getMessages: User not exist! user ID :', userId));
                   res.status(400).send('getMessages: User not exist!');
                 }
               })
             } else {
-              console.error('Server: getMessages: Room not exist! Room ID :', roomId);
+              console.error(chalk.red('Server: getMessages: Room not exist! Room ID :', roomId));
               res.status(400).send('getMessages: Room not exist!');
             }
           });
         } else {
-          console.error('Server: getMessages: Invalid Params!', JSON.stringify(req.body));
+          console.error(chalk.red('Server: getMessages: Invalid Params!', JSON.stringify(req.body)));
           res.status(400).send('getMessages: Invalid Params!');
         }
       }
       catch (e) {
-        console.error('Server: getMessages: Unexpected error:', JSON.stringify(e));
+        console.error(chalk.red('Server: getMessages: Unexpected error:', e.message));
         res.status(500).send('getMessages: Unexpected error!');
       }
-    });
+    });;
 
     app.post('/api/getUsers', (req, res) => {
       try {
-        console.log(`Server: getUsers: Users requested with params:`, JSON.stringify(req.body));
+        console.log(chalk.green(`Server: getUsers: Users requested with params:`, JSON.stringify(req.body)));
         if (req.body.userId && req.body.roomId) {
           const roomId = req.body.roomId;
           const userId = req.body.userId;
@@ -258,30 +269,30 @@ const init = (store) => new Promise((resolve, reject) => {
                   users = JSON.parse(reply);
                 }
                 if (users.map(x => x.userId).indexOf(userId) !== -1) {
-                  console.log(`Server: getUsers: Successfully get all users for Room ID :`, roomId);
+                  console.log(chalk.green(`Server: getUsers: Successfully get all users for Room ID :`, roomId));
                   res.send(JSON.stringify({ success: true, users }))
                 } else {
-                  console.error('Server: getUsers: User not exist! User ID :', userId);
+                  console.error(chalk.red('Server: getUsers: User not exist! User ID :', userId));
                   res.status(400).send('getUsers: User not exist!');
                 }
               })
             } else {
-              console.error('Server: getUsers: Room not exist! Room ID :', roomId);
+              console.error(chalk.red('Server: getUsers: Room not exist! Room ID :', roomId));
               res.status(400).send('getUsers: Room not exist!');
             }
           });
         } else {
-          console.error('Server: getUsers: Invalid Params!', JSON.stringify(req.body));
+          console.error(chalk.red('Server: getUsers: Invalid Params!', JSON.stringify(req.body)));
           res.status(400).send('getUsers: Invalid Params!');
         }
       }
       catch (e) {
-        console.error('Server: getUsers: Unexpected error:', JSON.stringify(e));
+        console.error(chalk.red('Server: getUsers: Unexpected error:', e.message));
         res.status(500).send('getUsers: Unexpected error!');
       }
     });
 
-    // Host FE code:
+    // Host FE Code
     app.get('*', (req, res) => {
       res.sendFile(path.join(__dirname + '/../public/index.html'));
     });
@@ -289,11 +300,12 @@ const init = (store) => new Promise((resolve, reject) => {
     const server = http.Server(app);
     const port = env.SERVER_PORT || 5000;
     server.listen(env.SERVER_PORT);
-    console.log('Server: Listener started on port:', port);
-    console.log('Server: Server is ready.');
+    enableDestroy(server);
+    console.log(chalk.yellow('Server: Listener started on port:', port));
+    console.log(chalk.yellow('Server: Server is ready.'));
     resolve(server);
   } catch (e) {
-    console.log('Server: While starting serve Unexpected error occured:', e);
+    console.log(chalk.yellow('Server: While starting serve Unexpected error occured:', e.message));
     reject(e);
   }
 });
