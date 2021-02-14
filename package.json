@@ -76,7 +76,7 @@
     "webpack": "^3.3.0",
     "webpack-cleanup-plugin": "^0.4.2",
     "webpack-dashboard": "^0.3.0",
-    "webpack-dev-server": "^2.4.1"
+    "webpack-dev-server": "^3.1.11"
   },
   "scripts": {
     "start": "webpack-dev-server --progress --profile --colors",
