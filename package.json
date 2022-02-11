@@ -21,7 +21,7 @@
     "font-awesome": "^4.7.0",
     "history": "^4.6.3",
     "immutable": "^3.7.6",
-    "node-sass": "^4.3.0",
+    "node-sass": "^7.0.0",
     "path": "^0.12.7",
     "react": "^16.0.0",
     "react-alert": "^2.4.0",
